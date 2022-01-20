@@ -9,15 +9,14 @@ def stock_picker(array_of_prices)
 
     array_of_prices.each_with_index do |price, index|
         buy = price
-        i = index
-        while i <= array_of_prices.length - 1
-            sell = array_of_prices[i]
+        while index <= array_of_prices.length - 1
+            sell = array_of_prices[index]
             if sell - buy > best_buy_sell[1] - best_buy_sell[0]
                 best_buy_sell[0] = buy
                 best_buy_sell[1] = sell
-                i += 1
+                index += 1
             else
-                i += 1
+                index += 1
             end
         end
     end
