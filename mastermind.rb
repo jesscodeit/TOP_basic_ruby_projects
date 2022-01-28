@@ -1,103 +1,63 @@
-class LetsPlay
+class PlayMastermind
   COLORS = ["blue", "red", "yellow", "purple", "orange", "green"]
   ALL_POSS = COLORS.repeated_combination(4).to_a
   @@secret_code = []
-  @@player_profile
+
+  @@human_profile
   @@computer_profile
+
+  $curr_guess = []
+  $hist_guesses = []
+  $hist_feedback = []
 
   def initialize
     draw_line
     puts "Welcome!"
     puts "What is your name, player?"
     draw_line
-    @@player_profile = Human.new(gets.chomp.capitalize)
+    @@human_profile = Human.new(gets.chomp.capitalize)
     @@computer_profile = Bot.new("Mr. Dator")
     draw_line
-    puts "Welcome, #{@@player_profile.name}!"
-    puts "Let's play some Mastermind!"
+    puts "Welcome, #{@@human_profile.name}!"
+    puts "Let's play Mastermind!"
     need_instructions?
     play_mastermind
   end
 
-  # player class start
   class Player
-    @@position
-    @@guesses = []
-    @@historical_guesses = []
-
-    attr_accessor :name, :position, :guesses, :historical_guesses
+    attr_accessor :name
 
     def initialize(name)
       @name = name
     end
-
-    def make_guess(choices)
-      @@guesses = []
-      while @@guesses.length < 4
-        puts "What is your guess for spot number #{@@guesses.length + 1}?"
-        puts "Enter one choice: #{choices}."
-        @guess = gets.chomp.downcase.strip
-
-        if choices.include?(@guess)
-          self.guesses = @@guesses.push(@guess)
-        else 
-          puts "Oops, that didn't match an option. Let's try again."
-        end
-      end
-      puts "..."
-      puts "Ok. Got it!"
-      puts "Your current guess is #{@@guesses}"
-      self.historical_guesses = @@historical_guesses.push(@@guesses)
-    end
-
-    def display_feedback
-      puts "Here is the feedback from the guesses:"
-      puts "..."
-      @@historical_guesses.each_with_index do |value, index|
-        if index === 0
-          puts "Guess #{index +1}: #{value}"
-        elsif index === 2
-          puts "Guess #{index}: #{value}"
-        elsif index.even?
-          puts "Guess #{index -1}: #{value}"
-        else
-          puts "Feedback: #{value}"
-          puts "..."
-        end
-      end
-    end
-
-    def reset_game
-      self.position = ""
-      self.guesses = []
-      self.historical_guesses = []
-    end
-
   end
-  # player class end
+  # end of player class
 
   class Bot < Player
     @remaining_possibilies = []
 
     attr_accessor :remaining_possibilies
 
+    def make_guess
+      current_guess = @remaining_possibilies.sample
+      $curr_guess = current_guess
+
+      $hist_guesses.push($curr_guess)
+
+      puts "#{self.name} guesses #{$curr_guess}"
+    end
+
+
     def find_possibilities(array, code_length)
       self.remaining_possibilies = array.repeated_combination(code_length).to_a
     end
 
-    def make_guess
-      current_guess = @remaining_possibilies.sample
-      self.guesses = current_guess
-      self.historical_guesses = @@historical_guesses.push(current_guess)
-
-      puts "#{self.name} guesses #{current_guess}"
-    end
 
     def remove_possibilities
-      guess = @@historical_guesses[-2]
-      feedback = @@historical_guesses.last
-      correct_spot = feedback["This many guesses were in the correct color and spot:"]
-      correct_color = feedback["This many guesses were the correct color but in the wrong spot:"]
+      guess = $hist_guesses.last
+      feedback = $hist_feedback.last
+      correct_spot = feedback[:spot]
+      correct_color = feedback[:color]
       codes_to_elim = [] 
 
       if correct_color === 0 && correct_spot === 0
@@ -110,7 +70,7 @@ class LetsPlay
         end
         @remaining_possibilies = (@remaining_possibilies - codes_to_elim)
 
-      elsif correct_color > 0 && correct_spot === 0 
+      elsif correct_color > 1 && correct_spot === 0 
         guess.each_with_index do |guess_color, color_index|
           @remaining_possibilies.each do |possible_code|
             possible_code.each_with_index do |code_color, code_index|
@@ -121,110 +81,122 @@ class LetsPlay
           end
         end
         @remaining_possibilies = (@remaining_possibilies - codes_to_elim)
-      elsif correct_color + correct_spot === 4
-        colors_to_keep = guess.uniq
-        colors_to_keep.each do |color|
-          @remaining_possibilies.each do |possible_code|
-            unless possible_code.include?(color)
-              codes_to_elim.push(possible_code)
-            end
-          end
-        end
-        @remaining_possibilies = (@remaining_possibilies - codes_to_elim)
       end
-      # puts "The last hist. feedback was: #{feedback}"
-      # puts "Number of guesses in correct spot: #{correct_spot}"
-      # puts "Number of guesses of correct color but in wrong spot: #{correct_color}"
-      # puts "The last guess was: #{guess}"
-      puts "The #{@remaining_possibilies.length} remaining possibilities are: #{@remaining_possibilies}"
-    end
 
+      #puts "The #{@remaining_possibilies.length} remaining possibilities are: #{@remaining_possibilies}"
+    end
   end
+  # end of bot class
 
   class Human < Player
+    def make_guess(choices)
+      code_guess = []
+      $curr_guess = []
 
+      while $curr_guess.length < 4
+        puts "What is your guess for spot number #{$curr_guess.length + 1}?"
+        puts "Enter one choice: #{choices}."
+        spot_guess = gets.chomp.downcase.strip
+
+        if choices.include?(spot_guess)
+          $curr_guess = $curr_guess.push(spot_guess)
+        else 
+          puts "Oops, that didn't match an option. Let's try again."
+        end
+      end
+
+      puts "..."
+      puts "Ok. Got it!"
+      puts "Your current guess is #{$curr_guess}"
+      $hist_guesses = $hist_guesses.push($curr_guess)
+    end
   end
 
+  def play_setter
+    $curr_guess = []
+    $hist_guesses = []
+    $hist_feedback = []
+    puts "Let's set that secret code!"
+    puts "..."
+    set_specific_code(COLORS)
+    puts "Now let's pass the torch to #{@@computer_profile.name}."
+    puts "#{@@computer_profile.name} will only get 4 chances to guess your secret code."
+    @@computer_profile.find_possibilities(COLORS, 4)
+    draw_line
+    lets_continue
 
+    5.times do |x|
+      if x === 4
+        draw_line
+        puts "That was the last guess!"
+        puts "It looks like #{@@computer_profile.name} didn't figure it out!"
+        puts "You bested the bot!"
+        puts "..."
 
-  def play_mastermind
-    @@player_profile.reset_game
-    @@computer_profile.reset_game
-    choose_position
-    if @@player_profile.position === "setter"
-      puts "Let's set that secret code!"
-      puts "..."
-      set_specific_code(COLORS)
-      puts "Now let's pass the torch to #{@@computer_profile.name}."
-      puts "#{@@computer_profile.name} will get 12 chances to guess your secret code."
-      @@computer_profile.find_possibilities(COLORS, 4)
+        if play_again?  
+          play_mastermind 
+        else 
+          break 
+        end
+      end
+
       draw_line
-      lets_continue
+      @@computer_profile.make_guess
+      draw_line
+      compare_codes
+      display_feedback
+      draw_line
 
-      3.times do |x|
-        if x === 3
-          draw_line
-          puts "That was the last guess!"
-          puts "It looks like #{@@computer_profile.name} didn't figure it out!"
-          puts "You bested the bot!"
-          puts "..."
-          if play_again? then play_mastermind else break end
+      if is_match?(@@secret_code, $curr_guess) 
+        puts declare_winner 
+
+        if play_again?
+          play_mastermind
+        else
+          break
         end
-        draw_line
-        @@computer_profile.make_guess
-        draw_line
-        new_compare_codes(@@computer_profile)
-        @@computer_profile.display_feedback
-        draw_line
-        if is_match?(@@secret_code, @@computer_profile.guesses) 
-          puts declare_winner 
-          @@player_profile.position = ""
-          if play_again?
-            play_mastermind
-          else
-            break
-          end
-        end
+      else
         @@computer_profile.remove_possibilities
         lets_continue
       end
-
-
-
-      ##### Here is where I am at in the logic timeline
-
-
-    elsif @@player_profile.position === "guesser"
-      @@player_profile.historical_guesses = []
-      @@secret_code = create_random_code(COLORS)
-      puts "Ok! #{@@computer_profile.name} has set the secret code."
-      puts "hint, its #{@@secret_code}"
-      puts "You've got 12 chances to guess the secret code."
-
-      12.times do |x|
-        draw_line
-        puts "Let's have guess number #{x + 1}!"
-        @@player_profile.make_guess(COLORS)
-        draw_line
-        compare_codes
-        @@player_profile.display_feedback
-        if is_match?(@@secret_code, @@player_profile.guesses) 
-          puts declare_winner 
-          @@player_profile.position = "" ## ADDED THIS LINE
-            if play_again?
-              play_mastermind
-            else
-              break
-            end
-        end
-      end
-      
-    else
-      puts "Hmm.. how did this go wrong?"
-      play_mastermind
     end
   end
 
+  def play_guesser
+    $hist_guesses = []
+    $hist_feedback = []
+    @@secret_code = create_random_code(COLORS)
+    puts "Ok! #{@@computer_profile.name} has set the secret code."
+    puts "hint, its #{@@secret_code}"
+    puts "You've got 12 chances to guess the secret code."
+
+    12.times do |x|
+      draw_line
+      puts "Let's have guess number #{x + 1}!"
+      puts"..."
+      @@human_profile.make_guess(COLORS)
+      draw_line
+      compare_codes
+      display_feedback
+      if is_match?(@@secret_code, $curr_guess) 
+        puts declare_winner 
+          if play_again?
+            play_mastermind
+          else 
+            break
+          end
+      end
+    end
+  end
+
+  def play_mastermind
+    if be_guesser? 
+      play_guesser 
+    else
+      play_setter
+    end
+  end
+    
   # things for setting version of game
   def set_specific_code(choices)
     @@secret_code = []
@@ -244,61 +216,47 @@ class LetsPlay
     draw_line
   end
 
-  ###
-  ### this is where I am working
-  ###
-
-
-  def new_compare_codes(whose_guess)
+  def compare_codes
     @correct_spot = 0
     @correct_color = 0
 
-    (whose_guess.guesses).each_with_index do |color, index|
+    $curr_guess.each_with_index do |color, index|
       if @@secret_code[index] === color
         @correct_spot += 1
-      elsif (@@secret_code.include?(color)) && (@@secret_code[index] != color)
+      elsif @@secret_code.include?(color)
         @correct_color += 1
       end
     end
 
-    @feedback = {
-      "This many guesses were in the correct color and spot:" => @correct_spot,
-      "This many guesses were the correct color but in the wrong spot:" => @correct_color
-    }
-
-    whose_guess.historical_guesses = whose_guess.historical_guesses.push(@feedback)
+    @feedback = { spot: @correct_spot, color: @correct_color }
+    $hist_feedback = $hist_feedback.push(@feedback)
   end
-
 
   # things for guessing version of game
   def create_random_code(choices)
     [choices.sample, choices.sample, choices.sample, choices.sample]
   end
 
-
-  def compare_codes
-    @correct_spot = 0
-    @correct_color = 0
-    @feedback = {}
-
-    @@secret_code.each_with_index do |color, index|
-      if @@player_profile.guesses[index] === color
-        @correct_spot += 1
-      elsif @@player_profile.guesses.include?(color)
-        @correct_color += 1
-      end
+  def display_feedback
+    puts "Here is the guess feedback:"
+    puts "..."
+    $hist_guesses.each_with_index do |value, index|
+      puts "Guess #{index +1}: #{value}"
+      puts "#{$hist_feedback[index][:spot]} symbols were placed correctly."
+      puts "#{$hist_feedback[index][:color]} symbols were placed incorrectly, but were the correct color."
+      puts " "
     end
-
-    @feedback = {
-      "This many guesses were in the correct color and spot:" => @correct_spot,
-      "This many guesses were the correct color but in the wrong spot" => @correct_color
-    }
-
-    @@player_profile.historical_guesses = @@player_profile.historical_guesses.push(@feedback)
   end
 
   def is_match?(code, guess)
     code === guess
+  end
+
+  def reset_game
+    @@secret_code = []
+    $curr_guess = []
+    $hist_guesses = []
+    $hist_feedback = []
   end
 
   def declare_winner
@@ -315,20 +273,22 @@ class LetsPlay
     draw_line
     response = gets.chomp.downcase.strip
     draw_line
-   if response === "y"
-     puts "Ok, let's do it!"
-     return true
-   elsif response === "n"
-     puts "Okay! Thanks for playing! Have a great day!"
-     draw_line
-     return false
-   else
-     puts "I am but a simple machine and could not understand your response.."
-     play_again?
-   end
+
+    if response === "y"
+      puts "Ok, let's do it!"
+      reset_game
+      return true
+    elsif response === "n"
+      puts "Okay! Thanks for playing! Have a great day!"
+      draw_line
+      return false
+    else
+      puts "I am but a simple machine and could not understand your response.."
+      play_again?
+    end
   end
 
-  def choose_position
+  def be_guesser?
     puts "Do you want to SET the secret code?"
     puts "Or do you want to GUESS the secret code?"
     puts "Enter 'set' to be the setter."
@@ -338,14 +298,14 @@ class LetsPlay
     draw_line
 
     if @response === "guess"
-      @@player_profile.position = "guesser"
+      return true
       puts "Excellent choice! Guessing is the most fun!"
     elsif @response === "set"
-      @@player_profile.position = "setter"
+      return false
       puts "Super choice! Let's see if you can best the bot!"
     else
       puts "Hmm... I didn't understand that..."
-      choose_position
+      be_guesser?
     end
   end
 
@@ -360,12 +320,12 @@ class LetsPlay
       puts "You are in for some fun!"
       puts "Let me explain the game."
       puts_instructions
-      puts "Got it #{@@player_profile.name}? Now, let's play!"
+      puts "Got it #{@@human_profile.name}? Now, let's play!"
       puts "Your bot opponent is #{@@computer_profile.name}!"
       draw_line
     elsif @response === "n"
       draw_line
-      puts "Ok then #{@@player_profile.name}, let's play!"
+      puts "Ok then #{@@human_profile.name}, let's play!"
       puts "Your bot opponent is #{@@computer_profile.name}!"
       draw_line
     else
@@ -414,4 +374,4 @@ class LetsPlay
 
 end
 
-a_game = LetsPlay.new
+a_game = PlayMastermind.new
