@@ -29,33 +29,67 @@ module Visuals
     We've got a super secret word picked out for you.
     HEREDOC
 
-    DOUBLE_CHECK = <<~HEREDOC
-    - - - - - - - - - - - - - - - - - - - - - - - - -
-    It look's like you're in the middle of playing
-    a game already...
-
-    Are you sure you want to open a different game?
-    Or would you like to save your open game first?
-
-    [save] To save your current game
-    [1] To start a new game
-    [2] To continue a saved game
-    - - - - - - - - - - - - - - - - - - - - - - - - -
-    HEREDOC
-
     GIBBERISH = <<~HEREDOC
     - - - - - - - - - - - - - - - - - - - - - - - - -
     Sorry, I didn't understand that...
-    Please re-enter your response.
+    Please try again.
     - - - - - - - - - - - - - - - - - - - - - - - - -
     HEREDOC
 
-    def template()
+    WINNER = <<~HEREDOC
+    * * * * * * * * * * * * * * * * * * * * * * * * *
+    Winner, Winner! 
+    Excellent work with that puzzle!
+    * * * * * * * * * * * * * * * * * * * * * * * * *
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
+
+    def loser()
         <<~HEREDOC
-        - - - - - - - - - - - - - - - - - - - - - - - - -
+        Womp, womp!
+        Looks like you didn't quite figure it out...
+        The secret word was: #{@secret_word}
         - - - - - - - - - - - - - - - - - - - - - - - - -
         HEREDOC
     end
+
+    PROMPT_FIND_GAME = <<~HEREDOC
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    What gamefile would you like to load?
+
+    HEREDOC
+
+    def game_found()
+        <<~HEREDOC
+        - - - - - - - - - - - - - - - - - - - - - - - - -
+        Okay!
+        Here is the saved game "#{@game}" 
+        
+        HEREDOC
+    end
+
+    INVALID_GAMEFILE_INDEX = <<~HEREDOC
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    Sorry, I didn't understand that...
+    Please enter a valid gamefile index number.
+    HEREDOC
+    
+    PLAY_AGAIN = <<~HEREDOC
+    So...
+    Do you want to play again?
+
+    [y] for yes
+    [n] for no
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
+
+    GOODBYE = <<~HEREDOC
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    Okey dokey!
+
+    Thanks for playing and have a fantastic day!
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
 
     DRAW_LINE = <<~HEREDOC
     - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -102,7 +136,7 @@ module Visuals
          \|/     |
           |     (*)
           |     /|
-          |     
+          |      |
           |     
         _/|\________
         [][][][][][]
