@@ -9,50 +9,46 @@ module Visuals
     end
     
     ASK_TO_PLAY = <<~HEREDOC
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        How would you like to play?
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    How would you like to play?
 
-        [1] To start a new game
-        [2] To continue a saved game
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        HEREDOC
+    [1] To start a new game
+    [2] To continue a saved game
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
 
     STARTING_NEW_GAME = <<~HEREDOC
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        Okay! Let's start a new game.
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        HEREDOC
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    Okay! Let's start a new game.
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
 
-    def word_set(word)
-        length = word.length
-        <<~HEREDOC
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        Here we go! 
-        We've got a super secret word picked out for you.
-        It is #{length} letters long.
-        HEREDOC
-    end
+    WORD_SET = <<~HEREDOC
+    Here we go! 
+
+    We've got a super secret word picked out for you.
+    HEREDOC
 
     DOUBLE_CHECK = <<~HEREDOC
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        It look's like you're playing a game that you
-        have not saved... 
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    It look's like you're in the middle of playing
+    a game already...
 
-        Are you sure you want to open a different game?
-        Or would you like to save your open game first?
+    Are you sure you want to open a different game?
+    Or would you like to save your open game first?
 
-        [save] To save your current game
-        [1] To start a new game
-        [2] To continue a saved game
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        HEREDOC
+    [save] To save your current game
+    [1] To start a new game
+    [2] To continue a saved game
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
 
     GIBBERISH = <<~HEREDOC
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        Sorry, I didn't understand that...
-        Please re-enter your response.
-        - - - - - - - - - - - - - - - - - - - - - - - - -
-        HEREDOC
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    Sorry, I didn't understand that...
+    Please re-enter your response.
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
 
     def template()
         <<~HEREDOC
@@ -60,6 +56,10 @@ module Visuals
         - - - - - - - - - - - - - - - - - - - - - - - - -
         HEREDOC
     end
+
+    DRAW_LINE = <<~HEREDOC
+    - - - - - - - - - - - - - - - - - - - - - - - - -
+    HEREDOC
 
     GALLOW_0 = %q{
         ___________

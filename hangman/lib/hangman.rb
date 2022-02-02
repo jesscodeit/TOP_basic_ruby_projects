@@ -72,11 +72,96 @@ class Hangman
   def start_new()
     @game_saved = false
     @asked_again = false
+    @wrong_letters = []
+    @gallow_array = [GALLOW_0, GALLOW_1, GALLOW_2, GALLOW_3, GALLOW_4, GALLOW_5, GALLOW_6]
+    @current_gallows = @gallow_array[0]
+
     puts STARTING_NEW_GAME
     generate_secret_word()
-    puts "HINT HINT, the word is #{@secret_word}"
-    puts word_set(@secret_word)
-    puts GALLOW_0
+    puts WORD_SET
+    puts "HINT HINT, the word is '#{@secret_word}'."
+    puts @current_gallows
+    make_letter_collector()
+    display_letter_collector()
+    take_turns()
+    display_outcome()
+  end
+
+  def make_letter_collector()
+    @letter_collector = Array.new(@secret_word.length) { |letter| "_" }
+  end
+
+  def update_letter_collector()
+    secret_array = @secret_word.split("")
+    collector_array = @letter_collector
+
+    secret_array.each_with_index do |letter, index|
+      if letter == @guess
+        collector_array[index] = @guess
+      end
+    end
+
+    @letter_collector = collector_array
+  end
+
+  def display_letter_collector()
+    puts "The secret word is #{@secret_word.length} letters long: #{@letter_collector.join("")}"
+    puts "Incorrect letter(s): #{@wrong_letters.join(", ")}"
+    puts DRAW_LINE
+  end
+
+  def display_outcome()
+    if word_matched?
+      puts "Winner, Winner!!"
+    else
+      puts "WOMP, WOMP."
+    end
+  end
+
+  def take_turns()
+
+    while @gallow_array.length > 1 && !word_matched?
+      guess_letter()
+      puts DRAW_LINE
+      check_guess()
+      display_result()
+    end
+  end
+
+  def word_matched?()
+    @secret_word == @letter_collector.join("") ? true : false
+  end
+
+  def guess_letter()
+    puts "Guess a letter!"
+    puts DRAW_LINE
+    @guess = gets.chomp.strip.downcase
+    puts DRAW_LINE
+
+    if @guess.match(/[^a-z]/)
+      puts "That's not a letter, silly. Try again."
+      guess_letter()
+    elsif @guess.length > 1
+      puts "Only guess one letter at a time. Try again."
+      guess_letter()
+    else
+      puts "Got it. Let's see if #{@guess} is a match!"
+    end
+  end
+
+  def check_guess()
+   if @secret_word.match(@guess)
+    update_letter_collector()
+   else
+     @wrong_letters.push(@guess)
+     @gallow_array.shift
+     @current_gallows = @gallow_array[0]
+   end
+  end
+
+  def display_result()
+    puts @current_gallows
+    display_letter_collector()
   end
 
   def continue_saved()
