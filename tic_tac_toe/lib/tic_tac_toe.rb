@@ -1,7 +1,8 @@
-# create a game of tic tac toe, played between two humans on the command line.
 require_relative 'player.rb'
 
 class Game
+  attr_accessor :board, :current_p
+
   def initialize
     @player_x = Player.new('X')
     @player_o = Player.new('O')
@@ -36,16 +37,20 @@ class Game
     end
   end
 
+  def get_spot_choice
+    spot_choice = player_input.to_i
+    if spot_choice == @board[spot_choice - 1]
+      return (spot_choice - 1)
+    else 
+      puts "\nERROR! Please pick a number (1-9) that has not already been marked."
+      get_spot_choice
+    end
+  end
+
   def turn(player)
     prompt_turn(player)
-    spot_choice = gets.chomp.to_i
-
-    if spot_choice == @board[spot_choice -1]
-      @board[spot_choice -1] = player.mark
-    else
-      puts "\nERROR! Please pick a number (1-9) that has not already been marked."
-      turn(player)
-    end
+    spot_choice = get_spot_choice
+    @board[spot_choice] = player.mark
   end
 
   def switch
@@ -87,7 +92,7 @@ class Game
 
   def play_again?
     prompt_play_again
-    a = gets.chomp.to_i
+    a = player_input.to_i
 
     if a == 1
       true
@@ -106,6 +111,10 @@ class Game
   end
 
   private
+
+  def player_input
+    gets.chomp
+  end
 
   def display_board
     puts <<~HEREDOC
