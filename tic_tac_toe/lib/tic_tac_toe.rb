@@ -1,119 +1,168 @@
 # create a game of tic tac toe, played between two humans on the command line.
+require_relative 'player.rb'
 
-$the_board = [1,2,3,4,5,6,7,8,9]
-
-class Player
-  attr_accessor :turns, :gets_next_turn
-  attr_reader :player_mark 
-
-  def initialize(player_mark)
-    @player_mark = player_mark
-    @turns = 0
-    @wins = 0
-    @gets_next_turn = false
+class Game
+  def initialize
+    @player_x = Player.new('X')
+    @player_o = Player.new('O')
+    @board = [1,2,3,4,5,6,7,8,9]
+    @current_p = @player_x
   end
-end
 
-def start_game(player1, player2)
-  puts "Let's play Tic Tac Toe!"
-  reset_board
-  display_board
-  if (player1.turns === 0 && player2.turns === 0) || (player2.gets_next_turn === false)
-    puts "Player #{player1.player_mark} you're up!"
-    player2.gets_next_turn = true
-    player1.turn
-    next_turn(player1, player2)
-  elsif player1.gets_next_turn === false
-    puts "Player #{player2.player_mark} you're up!"
-    player1.gets_next_turn = true
-    player2.turn
-    next_turn(player1, player2)
-  end
-end
+  def play
+    reset_game
 
-def toggle_turn(player)
-  player.gets_next_turn = !player.gets_next_turn
-end
-
-def next_turn(player1, player2)
-  until winner?
-    if player1.gets_next_turn === true
-      toggle_turn(player1)
-      toggle_turn(player2)
-      player1.turn
-    elsif player2.gets_next_turn === true
-      toggle_turn(player1)
-      toggle_turn(player2)
-      player2.turn
-    else
-      puts "Uh oh, I don't know whose turn it is..."
+    until winner?(@player_x) || winner?(@player_o) || tie?
+      display_board
+      turn(@current_p)
+      switch
     end
-  end
-end   
 
-def turn
-  puts "Player #{@player_mark}, where do you want to place your mark? Enter a number (1-9) for a spot that is open:"
-  spot_choice = gets.chomp.to_i
-  if spot_choice == $the_board[spot_choice - 1]
-    $the_board[spot_choice - 1] = @player_mark
-    puts "Ok. Your mark has been placed on spot #{spot_choice}."
     display_board
-    @turns += 1
-    if winner?
-      declare_winner
-      reset_game
+    if winner?(@player_x)
+      @player_x.wins += 1
+      declare_winner(@player_x)
+    elsif winner?(@player_o)
+      @player_o.wins += 1
+      declare_winner(@player_o)
+    else
+      declare_tie
     end
-  elsif spot_choice.is_a? Numeric
-    puts "I can't understand that. Please pick a number, 1-9 that hasn't already been marked."
-    turn
-  else 
-    puts "Try again. Please pick a number (1-9) that hasn't already been marked."
-    turn
+
+    if play_again?
+      play
+    else
+      puts "\nThanks for playing! Goodbye."
+    end
   end
-end
 
-def winner?
-  if ((@player_mark === $the_board[0]) && (@player_mark === $the_board[1]) && (@player_mark === $the_board[2])) ||
-     ((@player_mark === $the_board[3]) && (@player_mark === $the_board[4]) && (@player_mark === $the_board[5])) ||
-     ((@player_mark === $the_board[6]) && (@player_mark === $the_board[7]) && (@player_mark === $the_board[8])) ||
-     #above checks for horizontal 3 in a row, below checks for vertical
-     ((@player_mark === $the_board[0]) && (@player_mark === $the_board[3]) && (@player_mark === $the_board[6])) ||
-     ((@player_mark === $the_board[1]) && (@player_mark === $the_board[4]) && (@player_mark === $the_board[7])) ||
-     ((@player_mark === $the_board[2]) && (@player_mark === $the_board[5]) && (@player_mark === $the_board[8])) ||
-     #below checks for diagonal 3 in a row
-     ((@player_mark === $the_board[0]) && (@player_mark === $the_board[4]) && (@player_mark === $the_board[8])) ||
-     ((@player_mark === $the_board[2]) && (@player_mark === $the_board[4]) && (@player_mark === $the_board[6]))
-    return true
-  else
-    return false
+  def turn(player)
+    prompt_turn(player)
+    spot_choice = gets.chomp.to_i
+
+    if spot_choice == @board[spot_choice -1]
+      @board[spot_choice -1] = player.mark
+    else
+      puts "\nERROR! Please pick a number (1-9) that has not already been marked."
+      turn(player)
+    end
   end
+
+  def switch
+    if @current_p == @player_x
+      @current_p = @player_o
+    else
+      @current_p = @player_x
+    end
+  end
+
+  def winner?(player)
+    m = player.mark
+    b = @board
+
+    if  ((b[0] == m) && (b[1] == m) && (b[2] == m)) ||
+        ((b[3] == m) && (b[4] == m) && (b[5] == m)) ||
+        ((b[6] == m) && (b[7] == m) && (b[8] == m)) ||
+        #above checks horizontal wins
+        ((b[0] == m) && (b[3] == m) && (b[6] == m)) ||
+        ((b[1] == m) && (b[4] == m) && (b[7] == m)) ||
+        ((b[2] == m) && (b[5] == m) && (b[8] == m)) ||
+        #above checks vertical wins
+        ((b[0] == m) && (b[4] == m) && (b[8] == m)) ||
+        ((b[2] == m) && (b[4] == m) && (b[6] == m)) 
+        #above checks diagonal wins
+      return true
+    else
+      return false
+    end
+  end
+
+  def tie?
+    if @board.any? { |spot| spot.is_a? Numeric }
+      return false
+    else
+      return true
+    end
+  end
+
+  def play_again?
+    prompt_play_again
+    a = gets.chomp.to_i
+
+    if a == 1
+      true
+    elsif a == 2
+      false
+    else 
+      puts "\nERROR! Please submit the number 1 OR 2 to answer."
+      play_again?
+    end
+
+  end
+
+  def reset_game
+    @board = [1,2,3,4,5,6,7,8,9]
+    @current_p = @player_x
+  end
+
+  private
+
+  def display_board
+    puts <<~HEREDOC
+
+     #{@board[0]} | #{@board[1]} | #{@board[2]}
+    ---+---+---
+     #{@board[3]} | #{@board[4]} | #{@board[5]}
+    ---+---+---
+     #{@board[6]} | #{@board[7]} | #{@board[8]}
+    HEREDOC
+  end
+
+  def prompt_turn(player)
+    puts <<~HEREDOC
+
+    Player #{player.mark},
+    Where do you want to place your mark?
+
+    Enter a number (1-9) to choose the corresponding spot.
+
+    HEREDOC
+
+  end
+
+  def declare_tie
+    puts <<~HEREDOC
+
+    This game has ended in a tie. 
+    What a match-up!
+
+    HEREDOC
+  end
+
+  def declare_winner(player)
+    puts <<~HEREDOC
+
+    *  *  *  *  *  *  *  *  *  *
+    Congrats Player #{player.mark}!! YOU WIN!
+    *  *  *  *  *  *  *  *  *  *
+
+    Historical Game Wins:
+    #{@player_x.mark}: #{@player_x.wins}
+    #{@player_o.mark}: #{@player_o.wins}
+
+    HEREDOC
+  end
+
+  def prompt_play_again
+    puts <<~HEREDOC
+
+    Would you like to play again?
+
+    Enter:
+    [1] To play again
+    [2] To end game
+
+    HEREDOC
+  end
+
 end
-
-def declare_winner
-  puts "That is three in a row! Player #{@player_mark} wins!"
-  @wins += 1
-end
-
-def reset_board
-  $the_board = [1,2,3,4,5,6,7,8,9]
-end
-
-def reset_game
-  reset_board
-  puts "Great game! Let's play again!"
-  display_board
-end
-
-def display_board
-  puts "Here is the board:"
-  puts "#{$the_board[0]} #{$the_board[1]} #{$the_board[2]}"
-  puts "#{$the_board[3]} #{$the_board[4]} #{$the_board[5]}"
-  puts "#{$the_board[6]} #{$the_board[7]} #{$the_board[8]}"
-end
-
-# let's play
-
-x = Player.new("X")
-o = Player.new("O")
-
-start_game(x, o)
