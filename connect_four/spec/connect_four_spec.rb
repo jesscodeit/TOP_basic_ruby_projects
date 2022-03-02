@@ -83,9 +83,20 @@ describe ConnectFour do
       end
     end
 
-    context 'when there is a diagonal alignment of four coins' do
+    context 'when there is a upward diagonal alignment of four coins' do
       before do
         the_game.cage = [["⚫"],["⚪","⚫"],["⚪","⚪","⚫"],["⚪","⚪","⚪","⚫"],[],[]]
+        the_game.last_drop = 2
+      end
+
+      it 'returns true' do
+        expect(the_game.winner?).to be true
+      end
+    end
+
+    context 'when there is a downward diagonal alignment of four coins' do
+      before do
+        the_game.cage = [["⚪","⚪","⚪","⚫"],["⚪","⚪","⚫"],["⚪","⚫"],["⚫"],[],[]]
         the_game.last_drop = 2
       end
 

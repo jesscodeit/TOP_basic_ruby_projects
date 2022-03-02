@@ -134,7 +134,7 @@ class ConnectFour
   end
 
   def winner?
-    if row_win? || column_win? || diagonal_win?
+    if row_win? || column_win? || up_diagonal_win? || down_diagonal_win?
       true
     else
       false
@@ -211,7 +211,7 @@ class ConnectFour
     line >= 4 ? true : false
   end
 
-  def diagonal_win?
+  def up_diagonal_win?
     coin = @player_up.coin
     column = @last_drop
     row = @cage[@last_drop].length - 1
@@ -243,6 +243,52 @@ class ConnectFour
       if c < 6 && r < 5
         c += 1
         r += 1
+      else
+        break
+      end
+
+      if @cage[c][r] == coin
+        line += 1
+      else
+        break
+      end
+    end
+
+    line >= 4 ? true : false
+  end
+
+  def down_diagonal_win?
+    coin = @player_up.coin
+    column = @last_drop
+    row = @cage[@last_drop].length - 1
+
+    #check diagonally, left-up
+    c = column
+    r = row
+    line = 1
+
+    3.times do 
+      if c > 0 && r < 5
+        c -= 1
+        r += 1
+      else
+        break
+      end
+
+      if @cage[c][r] == coin
+        line += 1
+      else
+        break
+      end
+    end
+
+    #check diagonally, right-down
+    c = column 
+    r = row
+    3.times do
+      if c < 6 && r > 0
+        c += 1
+        r -= 1
       else
         break
       end
