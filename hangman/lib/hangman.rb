@@ -41,7 +41,7 @@ class Hangman
     generate_secret_word()    
     make_letter_collector()
     puts WORD_SET
-    puts "HINT HINT, the word is '#{@secret_word}'."
+    #puts "HINT HINT, the word is '#{@secret_word}'."
     game_play()
   end
 
